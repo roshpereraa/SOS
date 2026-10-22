@@ -1,94 +1,102 @@
 # SOS — Stills on Sticks
 
 A rebuild of [stillsonsticks.com](https://stillsonsticks.com) as a static site: the same
-structure as the original, plus a dedicated Contact page.
+structure as the original (Home, About, Services, Portfolio) plus a Contact page.
 
 Hand-written HTML, CSS and JavaScript. **No build step, no dependencies, no framework** —
 open `index.html` or drop the folder on any static host.
 
 ```
-index.html        Home
-about.html        About
-services.html     Services
-portfolio.html    Portfolio  (filterable)
-contact.html      Contact    (new)
+index.html  about.html  services.html  portfolio.html  contact.html
 
-assets/css/base.css        tokens, reset, typography, animated background
-assets/css/glass.css       the liquid-glass system + buttons
-assets/css/components.css  nav, footer, cards, media, forms, accordion, marquee
-assets/css/sections.css    page layouts, hero, process rail, reveal primitives
-assets/js/motion.js        scroll reveals, counters, parallax, tilt, pointer light
-assets/js/app.js           nav, drawer, accordion, posters, forms, filters, copy
+assets/css/base.css        tokens, reset, typography, atmosphere
+assets/css/glass.css       the liquid-glass layer (used selectively)
+assets/css/components.css  nav, work cards, reel, case rows, forms, footer
+assets/css/sections.css    page layouts, hero, reveal primitives
+assets/js/motion.js        scroll reveals, counters, parallax, pointer light
+assets/js/app.js           nav, drawer, accordion, rails, forms, filters
+assets/img/work/*.jpg      12 stills from the client's published videos
 ```
 
-## Adding the real videos
+## Art direction
 
-Every video card renders a designed gradient poster by default. Give a card a YouTube ID
-and it switches to the real thumbnail and plays inline on click — nothing else to change.
+A cutting room, not a SaaS dashboard. Warm near-black, bone white, one hot signal red.
+Almost no colour lives in the chrome — it all comes from the work itself, so the page is
+carried by thumbnails rather than gradients.
 
-Posters are generated in one place. In `index.html` / `portfolio.html`, find the card and
-add the `data-yt` attribute:
+Type is **Archivo** (heavy, slightly condensed, poster-like) for display, **Inter Tight**
+for body, and **Instrument Serif** italic for the occasional emphasised word. Layouts are
+left-aligned and asymmetric: alternating full-bleed case rows, a varied-tile work wall,
+oversized numerals used as layout rather than decoration.
+
+**Liquid glass is deliberate, not ambient.** It's reserved for things that genuinely float
+above the work — the nav bar, hover chips, the pointer peek, the lightbox. Each glass
+surface is a backdrop filter, a tint, a masked 1px gradient rim and a specular bloom, with
+`--mx` / `--my` / `--rim-a` driven from a single pointer listener so the highlight leans
+toward the cursor.
+
+## The thumbnails
+
+`assets/img/work/` holds twelve stills of real published videos, cropped from the
+full-resolution page captures of the live site (two of them stitched across a PDF page
+break). They carry YouTube's own play button and title bar, so the cards deliberately add
+no competing chrome of their own.
+
+**They are images, not players.** To make a card playable, add a video id:
 
 ```html
-<div class="poster" data-yt="dQw4w9WgXcQ" data-title="..." style="--p1:#c23b3b;--p2:#2a0f14">
+<div class="wk__shot" data-yt="VIDEO_ID"> … </div>
 ```
 
-`--p1` / `--p2` set the fallback poster's gradient, so a card still looks deliberate if a
-thumbnail ever 404s. The player uses `youtube-nocookie.com`.
-
-## The liquid glass
-
-A glass surface is five stacked ingredients, documented at the top of `glass.css`:
-a backdrop filter, a translucent tint, a 1px specular rim drawn with a masked gradient
-border, an inner bevel, and a cursor-tracked bloom. `motion.js` drives `--mx` / `--my` /
-`--rim-a` from a single pointer listener so the highlight and the rim both lean toward the
-cursor. Surfaces opt in with `.glass`; interactive ones add `.glass--react`.
+`app.js` then makes that card keyboard-operable and plays the video inline via
+`youtube-nocookie.com`. Without an id the card stays a static still rather than pretending
+to be a player. The ids could not be verified from the build environment — YouTube was
+unreachable — and guessing them would have risked putting the wrong video on a client's
+portfolio, so they're left for you to paste in.
 
 ## Motion
 
-Scroll reveals, counters, parallax, the sticky process rail and the 3D card tilt all run
-through `motion.js`. Three things to know:
-
-- **Nothing depends on JS to be readable.** The reveal styles are scoped behind a `.js`
-  class set inline in `<head>`. If `motion.js` never boots, a timer drops the class and the
-  whole page renders normally.
-- **Fast scrolling is handled.** `IntersectionObserver` can miss a section when someone hits
-  End or drags the scrollbar, which would leave it invisible for good. Both the reveals and
-  the counters keep a pending set and sweep it on scroll.
-- **`prefers-reduced-motion` is respected** throughout — reveals resolve instantly, counters
-  jump to their final value, and the pointer effects don't attach at all.
+- **Nothing depends on JS to be readable.** Reveal styles sit behind a `.js` class set
+  inline in `<head>`; if `motion.js` never boots, a timer drops the class and the page
+  renders normally.
+- **Fast scrolling is handled.** `IntersectionObserver` can miss a section when someone
+  hits End or drags the scrollbar, which would leave it invisible for good. Reveals and
+  counters keep a pending set and sweep it on scroll.
+- **`prefers-reduced-motion` is respected** throughout — reveals resolve instantly,
+  counters jump to their final value, pointer effects never attach.
 
 ## The contact form
 
-Validates client-side, then composes a `mailto:` to
-`yuhanperera@stillsonsticksteam.com` so an enquiry is never silently dropped. **There is no
-backend.** To collect submissions properly, point the form at a handler (Formspree, Vercel
-function, etc.) — see `initForms` in `app.js`; the `data-mailto` attribute on the `<form>`
-is the only place the address is set.
+Validates client-side, then composes a `mailto:` so an enquiry is never silently dropped.
+**There is no backend.** To collect submissions properly, point the form at a handler
+(Formspree, a Vercel function, …) — see `initForms` in `app.js`; `data-mailto` on the
+`<form>` is the only place the address is set.
 
 ## Content notes
 
-All copy, client names, case-study figures and testimonials are carried over verbatim from
-the original site. Three things were written for this build and should be reviewed:
+Copy, client names, case-study figures and testimonials come from the original site. Three
+things were written for this build and should be reviewed:
 
-1. **About page narrative and "how we think" tiles.** Built only from facts already stated
-   on the original site (the ZMDE sprint, the Business Basics growth, the 164M+ figure).
-2. **FAQ answers 2–4.** The original only exposed the first answer. These are grounded in
-   the stated process but deliberately avoid committing to turnaround times or a revision
-   count — set those before launch.
-3. **The third process column** was labelled "Post Production" on the original, duplicating
-   the second. Its steps (Creative & Script, Filming Day, Post & Delivery) are full
-   production, so it is labelled **Full Production** here.
+1. **The About narrative and the four "how we think" tiles** — built only from facts
+   already stated on the original site.
+2. **FAQ answers 2–4.** The original only exposed the first. These stay deliberately vague
+   on turnaround times and revision counts — set those before launch.
+3. **The subscriber chart** on the home page plots the shape of a year's growth between the
+   two figures the client states (200k → 900k+). The endpoints are real; the curve between
+   them is illustrative. Replace it with real data or drop it if that's not acceptable.
 
-Social links in the footer point at the bare platform URLs — swap in the real profiles.
+The original's third process column was labelled "Post Production" twice; its steps
+(Creative & Script, Filming Day, Post & Delivery) are full production, so it reads
+**Full production** here. Footer social links point at bare platform URLs — swap in the
+real profiles.
 
 ## Accessibility
 
 Semantic landmarks, a skip link, visible focus rings, a focus-trapped mobile drawer, ARIA
-on the accordion and form, and keyboard-operable video posters. Every text style was
-measured against its composited background and clears WCAG AA (4.5:1).
+on the accordion and form. Every text style was measured against its composited background
+and clears WCAG AA — the muted greys were lifted specifically to pass at small sizes.
 
 ## Deploying
 
-Static — no build. `vercel.json` enables clean URLs and long-lived caching for `/assets`.
+Static, no build. `vercel.json` enables clean URLs and long-lived caching for `/assets`.
 Works as-is on Vercel, Netlify, Cloudflare Pages or GitHub Pages.
