@@ -1,0 +1,282 @@
+/* ==========================================================================
+   glass.css — the liquid glass system
+   --------------------------------------------------------------------------
+   A glass surface here is built from five stacked ingredients:
+     1. a backdrop filter (blur + saturate + brightness) that bends what's behind
+     2. a translucent tint so the surface reads as a material, not a hole
+     3. a 1px specular rim drawn with a masked gradient border
+     4. an inner bevel (inset shadows) that gives the edge physical thickness
+     5. a cursor-tracked bloom that moves light across the surface
+
+   Cards opt in with .glass plus a size modifier. Interactive surfaces add
+   .glass--react to get the bloom and the lift.
+   ========================================================================== */
+
+.glass {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(160deg, rgb(255 255 255 / 0.075) 0%, rgb(255 255 255 / 0.02) 42%, rgb(146 180 255 / 0.045) 100%),
+    var(--glass-tint);
+  box-shadow: var(--glass-bevel), var(--glass-cast);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.08);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.08);
+}
+
+/* Browsers without backdrop-filter get a denser tint so text stays readable. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: linear-gradient(160deg, #141f38 0%, #0c1426 100%); }
+}
+
+/* --- 3. Specular rim -------------------------------------------------------
+   A real 1px gradient border, drawn by masking out the element's interior.
+   --rim-a is rotated by JS toward the pointer so the highlight travels. */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    var(--rim-a, 150deg),
+    rgb(255 255 255 / 0.5) 0%,
+    rgb(255 255 255 / 0.14) 26%,
+    rgb(255 255 255 / 0.04) 50%,
+    rgb(146 190 255 / 0.2) 78%,
+    rgb(255 255 255 / 0.38) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: background var(--d-med) var(--e-out);
+}
+
+/* --- 5. Cursor bloom -------------------------------------------------------
+   Two stacked radials: a tight specular hotspot and a wide colour wash.
+   Position comes from --mx/--my, set by glass.js on pointermove. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(255 255 255 / 0.13), transparent 62%),
+    radial-gradient(520px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(88 225 255 / 0.1), transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--d-med) var(--e-out);
+}
+
+.glass > * { position: relative; z-index: 3; }
+
+/* --- Interactive surfaces -------------------------------------------------- */
+.glass--react {
+  transition:
+    transform var(--d-med) var(--e-out),
+    box-shadow var(--d-med) var(--e-out),
+    background var(--d-med) var(--e-out);
+  will-change: transform;
+}
+.glass--react:hover,
+.glass--react:focus-within {
+  transform: translateY(-5px);
+  box-shadow:
+    var(--glass-bevel),
+    0 2px 4px rgb(2 4 10 / 0.45),
+    0 18px 44px -10px rgb(2 4 10 / 0.68),
+    0 44px 96px -24px rgb(63 135 255 / 0.3);
+}
+.glass--react:hover::after,
+.glass--react:focus-within::after { opacity: 1; }
+
+/* --- Size / density modifiers ---------------------------------------------- */
+.glass--sm   { border-radius: var(--r-md); --glass-blur: 18px; }
+.glass--pill { border-radius: var(--r-pill); --glass-blur: 20px; }
+.glass--xl   { border-radius: var(--r-xl); }
+
+.glass--thin {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.015));
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.18), 0 8px 28px -12px rgb(2 4 10 / 0.6);
+}
+
+.glass--deep {
+  --glass-blur: 40px;
+  background:
+    linear-gradient(160deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.025) 45%, rgb(139 124 255 / 0.07) 100%),
+    rgb(10 16 32 / 0.5);
+}
+
+/* --- Lens rim --------------------------------------------------------------
+   A heavier, asymmetric edge that reads as thick glass catching light from
+   the upper-left, with an inner caustic ring where the "bevel" refracts. */
+.glass--lens {
+  box-shadow:
+    inset 0 1.5px 0 0 rgb(255 255 255 / 0.4),
+    inset 0 -2px 2px -1px rgb(255 255 255 / 0.1),
+    inset 2px 0 3px -2px rgb(255 255 255 / 0.22),
+    inset -2px 0 3px -2px rgb(146 190 255 / 0.18),
+    inset 0 0 36px -12px rgb(255 255 255 / 0.16),
+    var(--glass-cast);
+}
+.glass--lens::before { padding: 1.5px; }
+
+/* --- Travelling sheen ------------------------------------------------------
+   A narrow band of light that sweeps across on hover. Purely decorative. */
+.glass--sheen { overflow: hidden; }
+.glass--sheen > .sheen {
+  position: absolute;
+  inset-block: -60%;
+  inset-inline-start: -40%;
+  inline-size: 38%;
+  z-index: 2;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.16), transparent);
+  rotate: 16deg;
+  translate: -220% 0;
+  pointer-events: none;
+}
+.glass--sheen:hover > .sheen,
+.glass--sheen:focus-within > .sheen {
+  transition: translate 0.95s var(--e-out);
+  translate: 480% 0;
+}
+
+/* --- Frosted divider -------------------------------------------------------- */
+.glass-rule {
+  block-size: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.16) 20%, rgb(255 255 255 / 0.16) 80%, transparent);
+}
+
+/* ==========================================================================
+   Buttons — glass pills with a magnetic pull (see glass.js)
+   ========================================================================== */
+.btn {
+  --btn-bg: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.7rem;
+  border-radius: var(--r-pill);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  isolation: isolate;
+  transition: transform var(--d-fast) var(--e-out), box-shadow var(--d-med) var(--e-out), color var(--d-fast) var(--e-out);
+  will-change: transform;
+}
+.btn:active { transform: scale(0.97); }
+.btn__label { position: relative; z-index: 3; display: inline-flex; align-items: center; gap: 0.55rem; }
+.btn svg { inline-size: 1em; block-size: 1em; flex: none; }
+
+/* Primary — solid light pill, the brightest thing on the page */
+.btn--primary {
+  background: linear-gradient(180deg, #ffffff, #d9e7ff);
+  color: #061024;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 2px 6px rgb(2 4 10 / 0.4),
+    0 12px 32px -10px rgb(88 225 255 / 0.5);
+}
+.btn--primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 2px 6px rgb(2 4 10 / 0.4),
+    0 18px 48px -10px rgb(88 225 255 / 0.75);
+}
+
+/* Glass — translucent with the full rim + bloom treatment */
+.btn--glass {
+  color: var(--fg);
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.03));
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 8px 26px -10px rgb(2 4 10 / 0.7);
+}
+.btn--glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(var(--rim-a, 150deg), rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.08) 50%, rgb(146 190 255 / 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.btn--glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(160px circle at var(--mx, 50%) var(--my, 50%), rgb(88 225 255 / 0.3), transparent 64%);
+  opacity: 0;
+  transition: opacity var(--d-med) var(--e-out);
+  pointer-events: none;
+}
+.btn--glass:hover::after { opacity: 1; }
+
+/* Signal — gradient fill for the highest-intent actions */
+.btn--signal {
+  color: #04101f;
+  background: var(--grad-signal);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 14px 38px -12px rgb(63 135 255 / 0.8);
+}
+.btn--signal:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 20px 56px -12px rgb(63 135 255 / 0.95); }
+
+/* Ghost — text-weight action */
+.btn--ghost { color: var(--fg-2); padding-inline: 0.6rem; }
+.btn--ghost:hover { color: var(--fg); }
+
+.btn--lg { padding: 1.1rem 2.1rem; font-size: 1rem; }
+.btn--sm { padding: 0.65rem 1.2rem; font-size: var(--t-xs); }
+.btn--block { display: flex; inline-size: 100%; }
+
+/* Arrow that nudges on hover */
+.btn .arrow { transition: translate var(--d-fast) var(--e-out); }
+.btn:hover .arrow { translate: 3px 0; }
+
+/* ==========================================================================
+   Chips / tags
+   ========================================================================== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: var(--r-pill);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.chip--live { color: var(--fg); }
+.chip--live .dot {
+  inline-size: 7px; block-size: 7px;
+  border-radius: 50%;
+  background: #34e39b;
+  box-shadow: 0 0 0 0 rgb(52 227 155 / 0.7);
+  animation: pulse-dot 2.4s ease-out infinite;
+}
+@keyframes pulse-dot {
+  70%  { box-shadow: 0 0 0 9px rgb(52 227 155 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(52 227 155 / 0); }
+}

@@ -1,0 +1,507 @@
+/* ==========================================================================
+   sections.css — page layouts, hero, process rail, reveal primitives
+   ========================================================================== */
+
+/* ==========================================================================
+   Reveal on scroll
+   --------------------------------------------------------------------------
+   Elements declare [data-reveal]; motion.js adds .is-in when they enter the
+   viewport. --i staggers siblings. Reduced motion collapses this to a fade.
+   ========================================================================== */
+.js [data-reveal] {
+  opacity: 0;
+  translate: 0 var(--rv-y, 30px);
+  filter: blur(8px);
+  transition:
+    opacity 0.85s var(--e-out),
+    translate 0.95s var(--e-out),
+    filter 0.85s var(--e-out);
+  transition-delay: calc(var(--i, 0) * 85ms);
+}
+.js [data-reveal="left"]  { translate: -32px 0; }
+.js [data-reveal="right"] { translate: 32px 0; }
+.js [data-reveal="scale"] { translate: 0 18px; scale: 0.96; transition-property: opacity, translate, filter, scale; }
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+  scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] { opacity: 1; translate: 0; filter: none; scale: 1; }
+}
+
+/* Word-by-word headline entrance */
+.word-rise { display: inline-block; overflow: hidden; vertical-align: top; padding-block-end: 0.12em; margin-block-end: -0.12em; }
+.js .word-rise > span {
+  display: inline-block;
+  translate: 0 110%;
+  rotate: 4deg;
+  transition: translate 1s var(--e-out), rotate 1s var(--e-out);
+  transition-delay: calc(var(--w, 0) * 70ms);
+}
+.js .is-lit .word-rise > span { translate: 0 0; rotate: 0deg; }
+@media (prefers-reduced-motion: reduce) { .js .word-rise > span { translate: 0; rotate: 0; } }
+
+/* ==========================================================================
+   Grids
+   ========================================================================== */
+.grid { display: grid; gap: clamp(1.1rem, 2.4vw, 1.75rem); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1000px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Two-column split with a sticky left rail */
+.split {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+}
+@media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); } }
+/* Form-weighted split: give the right column the extra room. Declared as a
+   class, not an inline style, so the mobile collapse below can override it. */
+.split--form { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+@media (max-width: 900px) { .split--form { grid-template-columns: minmax(0, 1fr); } }
+
+.split__sticky { position: sticky; inset-block-start: calc(var(--nav-h) + 2rem); }
+@media (max-width: 900px) { .split__sticky { position: static; } }
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.hero {
+  position: relative;
+  min-block-size: 100svh;
+  display: grid;
+  align-content: center;
+  padding-block: calc(var(--nav-h) + 4rem) 4rem;
+  text-align: center;
+  overflow: hidden;
+}
+.hero__inner { display: grid; justify-items: center; gap: 1.6rem; }
+
+.hero__title {
+  font-size: var(--t-display);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  max-inline-size: 15ch;
+}
+.hero__lede { max-inline-size: 60ch; margin-inline: auto; }
+.hero__cta { display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; margin-block-start: 0.6rem; }
+
+/* The counting number gets tabular figures so it doesn't jitter while animating */
+.counter { font-variant-numeric: tabular-nums; }
+
+/* Light beam — the glowing horizon under the hero */
+.beam {
+  position: relative;
+  inline-size: min(100%, 720px);
+  block-size: 2px;
+  margin-block-start: clamp(3rem, 8vw, 6rem);
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.9) 20%, #fff 50%, rgb(255 255 255 / 0.9) 80%, transparent);
+  box-shadow: 0 0 24px 2px rgb(146 200 255 / 0.8);
+}
+/* The dome of light cast beneath it */
+.beam::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: 190%;
+  block-size: 340px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: radial-gradient(60% 100% at 50% 0%, rgb(126 190 255 / 0.5), rgb(63 135 255 / 0.12) 42%, transparent 70%);
+  filter: blur(26px);
+  pointer-events: none;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  margin-block-start: clamp(2.5rem, 6vw, 4rem);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+}
+.scroll-hint__rail {
+  position: relative;
+  inline-size: 1px;
+  block-size: 46px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.3), transparent);
+  overflow: hidden;
+}
+.scroll-hint__rail::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  block-size: 16px;
+  background: linear-gradient(180deg, transparent, var(--cyan));
+  animation: rail-run 2.1s var(--e-inout) infinite;
+}
+@keyframes rail-run {
+  0%   { translate: 0 -18px; opacity: 0; }
+  40%  { opacity: 1; }
+  100% { translate: 0 48px; opacity: 0; }
+}
+
+/* ==========================================================================
+   Page hero (inner pages)
+   ========================================================================== */
+.page-hero {
+  position: relative;
+  /* Clips the beam's glow, which is deliberately wider than its container */
+  overflow: hidden;
+  padding-block: calc(var(--nav-h) + clamp(4.5rem, 11vw, 8rem)) clamp(2.5rem, 6vw, 4.5rem);
+  text-align: center;
+}
+.page-hero__inner { display: grid; justify-items: center; gap: 1.3rem; }
+.page-hero .lede { margin-inline: auto; text-align: center; }
+
+/* Breadcrumb */
+.crumbs { display: flex; gap: 0.5rem; align-items: center; font-size: var(--t-xs); color: var(--fg-4); }
+.crumbs a:hover { color: var(--fg-2); }
+.crumbs svg { inline-size: 12px; block-size: 12px; opacity: 0.5; }
+
+/* ==========================================================================
+   Stats band
+   ========================================================================== */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { padding: clamp(1.4rem, 3vw, 2.2rem); text-align: center; position: relative; }
+.stat + .stat::before {
+  content: "";
+  position: absolute;
+  inset-block: 22%;
+  inset-inline-start: 0;
+  inline-size: 1px;
+  background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.16), transparent);
+}
+@media (max-width: 760px) { .stat:nth-child(odd)::before { display: none; } }
+.stat__n {
+  font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3.1rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat__k {
+  margin-block-start: 0.6rem;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+}
+
+/* ==========================================================================
+   Process — sticky rail with scroll-scrubbed progress
+   ========================================================================== */
+.process__rail { display: grid; gap: 1rem; }
+.pstep {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  transition: background var(--d-med) var(--e-out);
+}
+.pstep__num {
+  display: grid;
+  place-items: center;
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: 50%;
+  flex: none;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  transition: all var(--d-med) var(--e-out);
+}
+.pstep.is-active .pstep__num {
+  color: #06101f;
+  background: linear-gradient(180deg, #fff, #cfe3ff);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 8px 24px -6px rgb(88 225 255 / 0.85);
+  scale: 1.06;
+}
+.pstep__title { font-size: var(--t-h4); font-weight: 600; letter-spacing: -0.02em; }
+.pstep__list { display: grid; gap: 0.6rem; margin-block-start: 0.9rem; }
+.pstep__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  color: var(--fg-3);
+  font-size: var(--t-sm);
+  line-height: 1.55;
+}
+.pstep__list li::before {
+  content: "";
+  inline-size: 5px;
+  block-size: 5px;
+  margin-block-start: 0.62em;
+  border-radius: 50%;
+  background: var(--cyan);
+  opacity: 0.75;
+}
+.pstep__list strong { color: var(--fg-2); font-weight: 600; }
+
+/* Vertical progress rail that fills as the section scrolls */
+.prail {
+  position: relative;
+  inline-size: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.1);
+  overflow: hidden;
+}
+.prail::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 100%;
+  background: linear-gradient(180deg, var(--cyan), var(--violet));
+  transform-origin: 50% 0;
+  scale: 1 var(--fill, 0);
+  transition: scale 0.15s linear;
+  box-shadow: 0 0 14px rgb(88 225 255 / 0.7);
+}
+.process__grid { display: grid; grid-template-columns: 2px minmax(0, 1fr); gap: clamp(1.2rem, 3vw, 2.2rem); }
+
+/* ==========================================================================
+   Services — numbered rows that bloom on hover
+   ========================================================================== */
+.service {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(1.2rem, 3vw, 2.5rem);
+  align-items: start;
+  padding: clamp(1.6rem, 3.6vw, 2.6rem);
+}
+@media (max-width: 760px) {
+  .service { grid-template-columns: auto minmax(0, 1fr); }
+  .service__go { grid-column: 2; justify-self: start; }
+}
+.service__n {
+  font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 0.3);
+  font-variant-numeric: tabular-nums;
+  transition: -webkit-text-stroke var(--d-med) var(--e-out), color var(--d-med) var(--e-out);
+}
+.service:hover .service__n { color: var(--cyan); -webkit-text-stroke-color: transparent; }
+.service__t { font-size: var(--t-h3); font-weight: 600; letter-spacing: -0.03em; }
+.service__d { color: var(--fg-3); font-size: var(--t-sm); line-height: 1.68; margin-block-start: 0.7rem; max-inline-size: 62ch; }
+.service__tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-block-start: 1.1rem; }
+.service__go {
+  display: grid;
+  place-items: center;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 50%;
+  flex: none;
+  color: var(--fg-2);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  transition: all var(--d-med) var(--e-out);
+}
+.service:hover .service__go {
+  color: #06101f;
+  background: linear-gradient(180deg, #fff, #d7e6ff);
+  translate: 4px 0;
+}
+.service__go svg { inline-size: 16px; block-size: 16px; }
+
+/* ==========================================================================
+   Feature / value tiles
+   ========================================================================== */
+.tile { display: grid; gap: 0.9rem; padding: clamp(1.5rem, 3vw, 2rem); block-size: 100%; align-content: start; }
+.tile__ico {
+  display: grid;
+  place-items: center;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 13px;
+  color: var(--cyan);
+  background: linear-gradient(150deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.03));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  margin-block-end: 0.3rem;
+}
+.tile__ico svg { inline-size: 20px; block-size: 20px; }
+.tile__t { font-size: var(--t-h4); font-weight: 600; letter-spacing: -0.02em; }
+.tile__d { color: var(--fg-3); font-size: var(--t-sm); line-height: 1.62; }
+
+/* ==========================================================================
+   CTA band
+   ========================================================================== */
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2.6rem, 7vw, 5.5rem);
+  text-align: center;
+}
+/* An abstract NLE timeline, drawn in CSS, sitting behind the copy */
+.cta-band__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.35;
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(180deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 42px),
+    linear-gradient(120deg, #142a52, #0a1024 70%);
+  mask-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0.25));
+  -webkit-mask-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0.25));
+}
+/* Clip bars drifting across the "timeline" */
+.cta-band__clips {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.5;
+  overflow: hidden;
+  /* Hollow out the middle so the drifting clips never cross the copy */
+  mask-image: radial-gradient(72% 86% at 50% 50%, transparent 34%, #000 76%);
+  -webkit-mask-image: radial-gradient(72% 86% at 50% 50%, transparent 34%, #000 76%);
+}
+.cta-band__clips i {
+  position: absolute;
+  display: block;
+  block-size: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--c1, #3f87ff), var(--c2, #8b7cff));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+  animation: clip-drift var(--dur, 30s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes clip-drift {
+  from { transform: translateX(110vw); }
+  to   { transform: translateX(-60vw); }
+}
+.cta-band__inner { position: relative; z-index: 3; display: grid; justify-items: center; gap: 1.3rem; }
+
+/* ==========================================================================
+   Pull quote
+   ========================================================================== */
+.pull {
+  display: grid;
+  gap: 1.6rem;
+  padding: clamp(2rem, 5vw, 3.4rem);
+  text-align: center;
+  justify-items: center;
+}
+.pull__q {
+  font-size: clamp(1.3rem, 1rem + 1.6vw, 2.1rem);
+  font-weight: 300;
+  line-height: 1.38;
+  letter-spacing: -0.03em;
+  max-inline-size: 30ch;
+}
+.pull__mark { font-size: 3rem; line-height: 0.6; color: var(--cyan); opacity: 0.5; }
+
+/* ==========================================================================
+   Filter bar (portfolio)
+   ========================================================================== */
+.filters { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.filters button {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--r-pill);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--fg-3);
+  background: rgb(255 255 255 / 0.04);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  transition: all var(--d-fast) var(--e-out);
+}
+.filters button:hover { color: var(--fg); background: rgb(255 255 255 / 0.08); }
+.filters button[aria-pressed="true"] {
+  color: #06101f;
+  background: linear-gradient(180deg, #fff, #d7e6ff);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 6px 18px -6px rgb(88 225 255 / 0.7);
+}
+
+/* Cards hidden by a filter */
+.is-filtered { display: none !important; }
+
+/* ==========================================================================
+   Timeline (about)
+   ========================================================================== */
+.timeline { display: grid; gap: 0; position: relative; }
+.tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.5rem;
+  padding-block: 1.6rem;
+}
+.tl-item::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 11px;
+  inline-size: 1px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05));
+}
+.tl-item:last-child::before { block-size: 2rem; }
+.tl-dot {
+  position: relative;
+  z-index: 2;
+  inline-size: 23px;
+  block-size: 23px;
+  border-radius: 50%;
+  margin-block-start: 0.3rem;
+  background: var(--ink-800);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
+  display: grid;
+  place-items: center;
+}
+.tl-dot::after {
+  content: "";
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--grad-signal);
+  box-shadow: 0 0 12px rgb(88 225 255 / 0.9);
+}
+.tl-k { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cyan); }
+.tl-t { font-size: var(--t-h4); font-weight: 600; letter-spacing: -0.02em; margin-block-start: 0.35rem; }
+.tl-d { color: var(--fg-3); font-size: var(--t-sm); line-height: 1.62; margin-block-start: 0.5rem; max-inline-size: 60ch; }
+
+/* ==========================================================================
+   Utility
+   ========================================================================== */
+.center { text-align: center; }
+.center .lede { margin-inline: auto; }
+.center .eyebrow { justify-self: center; }
+.section-head.center { justify-items: center; }
+.flow > * + * { margin-block-start: var(--flow, 1rem); }
+.sr-only {
+  position: absolute;
+  inline-size: 1px; block-size: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
