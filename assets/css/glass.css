@@ -85,11 +85,11 @@
 .gchip--live .dot {
   inline-size: 6px; block-size: 6px;
   border-radius: 50%;
-  background: var(--red);
-  box-shadow: 0 0 0 0 rgb(255 59 47 / 0.75);
+  background: var(--azure);
+  box-shadow: 0 0 0 0 rgb(79 155 240 / 0.75);
   animation: pulse 2.4s ease-out infinite;
 }
 @keyframes pulse {
-  70%  { box-shadow: 0 0 0 8px rgb(255 59 47 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(255 59 47 / 0); }
+  70%  { box-shadow: 0 0 0 8px rgb(79 155 240 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(79 155 240 / 0); }
 }

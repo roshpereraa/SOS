@@ -8,37 +8,41 @@
    ========================================================================== */
 
 :root {
-  /* Ink — warm neutral black, deliberately NOT blue */
-  --ink-1000: #09090a;
-  --ink-900:  #0c0c0e;
-  --ink-800:  #121214;
-  --ink-700:  #18181b;
-  --ink-600:  #212125;
-  --ink-500:  #2d2d33;
-  --ink-400:  #3d3d45;
+  /* Ink — the original site's own field colour and a ramp built from it */
+  --ink-1000: #04080f;
+  --ink-900:  #060c1a;
+  --ink-800:  #0a1223;
+  --ink-700:  #0f1a2e;
+  --ink-600:  #15233b;
+  --ink-500:  #1e3050;
+  --ink-400:  #2b4066;
 
-  /* Signal — the only saturated colour in the chrome */
-  --red:      #ff3b2f;
-  --red-deep: #d81e14;
-  --cream:    #f2ede3;
-  --sand:     #c9bda8;
+  /* Brand azure — sampled from the glow on the original site. --azure clears
+     AA as text on the field; the deep tone is for pressed/hover fills. */
+  --azure:      #4f9bf0;
+  --azure-deep: #2f7fd4;
+  --glow:       #e7f6ff;
+  --cream:      #eef3fb;
+  --slate:      #7990a5;
 
-  /* Foreground — warm whites, measured for AA on --ink-800 cards */
-  /* Each step measured against the page black and the lighter card surface —
-     the two muted tones still clear WCAG AA at small sizes. */
-  --fg:   #f6f4f1;
-  --fg-2: #c3bfb9;
-  --fg-3: #a6a19a;
-  --fg-4: #8a857d;
+  /* Reserved for form errors only — a semantic signal, not a brand colour */
+  --danger: #ff6a5e;
+
+  /* Foreground — cool-tinted, each step measured against the field and the
+     lighter card surface */
+  --fg:   #eef3fb;
+  --fg-2: #b9c4d6;
+  --fg-3: #9aa7bc;
+  --fg-4: #8490a4;
 
   /* Rules */
-  --line:      rgb(246 244 241 / 0.1);
-  --line-soft: rgb(246 244 241 / 0.06);
+  --line:      rgb(238 243 251 / 0.11);
+  --line-soft: rgb(238 243 251 / 0.06);
 
   /* Glass — used sparingly now: nav, overlays, hover chips */
   --glass-blur: 22px;
-  --glass-bg:   rgb(22 22 25 / 0.62);
-  --glass-edge: rgb(246 244 241 / 0.14);
+  --glass-bg:   rgb(8 14 28 / 0.66);
+  --glass-edge: rgb(238 243 251 / 0.14);
   --glass-bevel:
     inset 0 1px 0 0 rgb(255 255 255 / 0.14),
     inset 0 -1px 0 0 rgb(0 0 0 / 0.4);
@@ -133,8 +137,8 @@ p { text-wrap: pretty; }
   letter-spacing: -0.01em;
 }
 
-:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: var(--r-xs); }
-::selection { background: var(--red); color: #fff; }
+:focus-visible { outline: 2px solid var(--azure); outline-offset: 3px; border-radius: var(--r-xs); }
+::selection { background: var(--azure); color: var(--ink-900); }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--ink-1000); }
@@ -148,8 +152,8 @@ p { text-wrap: pretty; }
   translate: -50% -130%;
   z-index: 2000;
   padding: 0.7rem 1.3rem;
-  background: var(--red);
-  color: #fff;
+  background: var(--azure);
+  color: var(--ink-900);
   font-weight: 600;
   border-radius: 0 0 var(--r-sm) var(--r-sm);
   transition: translate var(--d-fast) var(--e-out);
@@ -192,7 +196,7 @@ p { text-wrap: pretty; }
   text-transform: uppercase;
   color: var(--fg-4);
 }
-.label--red { color: var(--red); }
+.label--red { color: var(--azure); }
 .label__n {
   font-variant-numeric: tabular-nums;
   color: var(--fg-4);

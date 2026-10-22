@@ -20,9 +20,18 @@ assets/img/work/*.jpg      12 stills from the client's published videos
 
 ## Art direction
 
-A cutting room, not a SaaS dashboard. Warm near-black, bone white, one hot signal red.
-Almost no colour lives in the chrome — it all comes from the work itself, so the page is
+Keyed to the original site's own colours, sampled from the full-resolution captures:
+the field is `#060c1a` — the exact background of the live site — and the accent is
+`--azure: #4f9bf0`, taken from the blue glow under the original hero. Almost no colour
+lives in the chrome beyond that; the rest comes from the work itself, so the page is
 carried by thumbnails rather than gradients.
+
+What made the first pass look generic was the cyan→violet *gradients*, aurora blobs,
+centred symmetry and uniform glass — not the blue. Those are gone; the brand blue stayed.
+
+Red is reserved for form errors (`--danger`), where it's a semantic signal rather than
+styling. Note that white on the azure fill only reaches 2.88:1, so filled buttons use
+dark ink on azure instead.
 
 Type is **Archivo** (heavy, slightly condensed, poster-like) for display, **Inter Tight**
 for body, and **Instrument Serif** italic for the occasional emphasised word. Layouts are
