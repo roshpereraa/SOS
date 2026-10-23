@@ -12,9 +12,11 @@ index.html  about.html  services.html  portfolio.html  contact.html
 assets/css/base.css        tokens, reset, typography, atmosphere
 assets/css/glass.css       the liquid-glass layer (used selectively)
 assets/css/components.css  nav, work cards, reel, case rows, forms, footer
-assets/css/sections.css    page layouts, hero, reveal primitives
+assets/css/sections.css    page layouts, reveal primitives
+assets/css/cinema.css      intro, play cursor, hero wall, scrub, gallery
 assets/js/motion.js        scroll reveals, counters, parallax, pointer light
 assets/js/app.js           nav, drawer, accordion, rails, forms, filters
+assets/js/cinema.js        intro, cursor, scroll-pinned scrub + gallery
 assets/img/work/*.jpg      12 stills from the client's published videos
 ```
 
@@ -62,6 +64,30 @@ no competing chrome of their own.
 to be a player. The ids could not be verified from the build environment — YouTube was
 unreachable — and guessing them would have risked putting the wrong video on a client's
 portfolio, so they're left for you to paste in.
+
+## The set pieces
+
+Three things carry the page, all built from the same twelve stills:
+
+**The hero wall** — five columns of real work drifting at different speeds on a tilted
+3D plane, pushed gently against the pointer, dimmed hard behind the headline.
+
+**The scrub** (`[data-scrub]`) — a pinned section where scrolling cuts between all twelve
+frames like running an edit timeline, with a frame counter, client name and a tick rail
+that fills as you go. This is the one moment that's specific to what SOS actually does.
+
+**The gallery** (`[data-hgal]`) — a pinned section that tracks sideways through the work
+as you scroll down, at 1.6× scroll speed so it doesn't cost 6000px to get through.
+
+One scroll loop in `cinema.js` drives all of it. Pin heights are measured from real
+content and recomputed on resize and after fonts settle. Without JS the pinned sections
+become ordinary stacked blocks; with `prefers-reduced-motion` they unpin entirely.
+
+## Icons
+
+One 24px line set, defined as geometry only in `_P` in the generator — `.ico` supplies
+stroke, width and caps, so every icon is consistent by construction rather than by
+discipline.
 
 ## Motion
 

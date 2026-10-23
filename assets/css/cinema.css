@@ -1,0 +1,370 @@
+/* ==========================================================================
+   cinema.css — the parts that make this a showreel rather than a layout
+   --------------------------------------------------------------------------
+   Intro reveal, play cursor, the hero wall, scroll-scrubbed timeline,
+   horizontal gallery, glow/bloom. Everything degrades: without JS the pinned
+   sections become ordinary stacked content, and prefers-reduced-motion stops
+   all drift.
+   ========================================================================== */
+
+/* ==========================================================================
+   Intro — a shutter wipe, once per session
+   ========================================================================== */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  background: var(--ink-1000);
+  transition: clip-path 1s var(--e-inout);
+  clip-path: inset(0 0 0 0);
+}
+.intro.is-done { clip-path: inset(0 0 100% 0); pointer-events: none; }
+.intro__mark {
+  font-family: "Archivo", sans-serif;
+  font-weight: 900;
+  font-stretch: 86%;
+  font-size: clamp(3rem, 14vw, 9rem);
+  letter-spacing: -0.07em;
+  line-height: 1;
+  color: var(--fg);
+}
+.intro__mark em { font-style: normal; color: var(--azure); }
+.intro__bar {
+  inline-size: min(260px, 50vw);
+  block-size: 2px;
+  margin-block-start: 1.6rem;
+  background: rgb(238 243 251 / 0.14);
+  overflow: hidden;
+}
+.intro__bar i {
+  display: block;
+  block-size: 100%;
+  inline-size: var(--p, 0%);
+  background: var(--azure);
+  box-shadow: 0 0 14px var(--azure);
+  transition: inline-size 0.25s linear;
+}
+.intro__pct {
+  margin-block-start: 0.8rem;
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--fg-4);
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) { .intro { display: none; } }
+
+/* ==========================================================================
+   Cursor — becomes a PLAY disc over any still
+   ========================================================================== */
+.cursor, .cursor-dot { position: fixed; z-index: 2500; pointer-events: none; translate: -50% -50%; }
+.cursor {
+  inline-size: 44px; block-size: 44px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(238 243 251 / 0.45);
+  display: grid; place-items: center;
+  transition: inline-size .3s var(--e-out), block-size .3s var(--e-out),
+              background .3s var(--e-out), box-shadow .3s var(--e-out), opacity .3s;
+  opacity: 0;
+}
+.cursor-dot {
+  inline-size: 5px; block-size: 5px;
+  border-radius: 50%;
+  background: var(--azure);
+  opacity: 0;
+  transition: opacity .3s, scale .3s var(--e-out);
+}
+body.cursor-on .cursor, body.cursor-on .cursor-dot { opacity: 1; }
+.cursor__label {
+  font-family: "Archivo", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--ink-900);
+  opacity: 0;
+  scale: 0.6;
+  transition: opacity .25s var(--e-out), scale .25s var(--e-spring);
+}
+.cursor.is-play {
+  inline-size: 86px; block-size: 86px;
+  background: var(--azure);
+  box-shadow: 0 0 40px -6px var(--azure);
+}
+.cursor.is-play .cursor__label { opacity: 1; scale: 1; }
+body.cursor-on.is-play .cursor-dot { opacity: 0; }
+@media (hover: none), (pointer: coarse) { .cursor, .cursor-dot { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cursor, .cursor-dot { display: none; } }
+
+/* ==========================================================================
+   Hero — a moving wall of the real work behind giant type
+   ========================================================================== */
+.cine {
+  position: relative;
+  min-block-size: 100svh;
+  display: grid;
+  align-content: center;
+  overflow: hidden;
+  padding-block: calc(var(--nav-h) + 2rem) 7rem;
+  isolation: isolate;
+}
+
+/* The wall: five columns drifting at different speeds, tilted in 3D */
+.cine__wall {
+  position: absolute;
+  inset: -14% -6%;
+  z-index: 0;
+  perspective: 1400px;
+  pointer-events: none;
+  /* preserve-3d children can escape an ancestor's overflow clip, so the wall
+     clips them itself before .cine clips the wall. */
+  overflow: hidden;
+}
+.cine__plane {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(0.5rem, 1.2vw, 1rem);
+  block-size: 100%;
+  transform-style: preserve-3d;
+  transform: rotateX(12deg) rotateZ(-7deg) scale(1.18);
+  translate: var(--wx, 0) var(--wy, 0);
+  transition: translate 1.2s var(--e-out);
+}
+@media (max-width: 760px) { .cine__plane { grid-template-columns: repeat(3, 1fr); transform: rotateX(10deg) rotateZ(-6deg) scale(1.5); } }
+.cine__col { display: grid; gap: clamp(0.5rem, 1.2vw, 1rem); align-content: start; animation: wall var(--d, 48s) linear infinite; }
+.cine__col:nth-child(even) { animation-direction: reverse; }
+.cine__col:nth-child(1) { --d: 52s; }
+.cine__col:nth-child(2) { --d: 64s; }
+.cine__col:nth-child(3) { --d: 46s; }
+.cine__col:nth-child(4) { --d: 70s; }
+.cine__col:nth-child(5) { --d: 56s; }
+@keyframes wall { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, -50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .cine__col { animation: none; } }
+
+.cine__shot {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--ink-700);
+}
+.cine__shot img {
+  inline-size: 100%; block-size: 100%;
+  object-fit: cover;
+  filter: saturate(0.4) brightness(0.38) contrast(1.06);
+}
+
+/* Veil: darkens the wall and pushes an azure bloom up behind the headline */
+.cine__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(6 12 26 / 0.96) 0%, rgb(6 12 26 / 0.55) 14%, transparent 26%),
+    radial-gradient(72% 56% at 30% 52%, rgb(6 12 26 / 0.98) 0%, rgb(6 12 26 / 0.9) 44%, rgb(6 12 26 / 0.3) 78%),
+    radial-gradient(90% 60% at 18% 112%, rgb(79 155 240 / 0.26), transparent 62%),
+    linear-gradient(180deg, transparent 20%, rgb(6 12 26 / 0.55) 62%, var(--ink-900) 100%);
+}
+
+.cine__body { position: relative; z-index: 2; display: grid; justify-items: start; gap: 1.3rem; }
+
+.cine__title {
+  font-family: "Archivo", sans-serif;
+  font-weight: 900;
+  font-stretch: 84%;
+  font-size: clamp(2.9rem, 0.6rem + 9vw, 8.4rem);
+  line-height: 0.82;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
+  text-shadow: 0 2px 40px rgb(6 12 26 / 0.75);
+}
+.cine__title em { font-style: normal; color: var(--azure); text-shadow: 0 0 60px rgb(79 155 240 / 0.55); }
+.cine__title .sm {
+  display: block;
+  font-family: "Inter Tight", sans-serif;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.2rem);
+  font-weight: 400;
+  font-stretch: normal;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+  color: var(--fg-2);
+  max-inline-size: 36ch;
+  margin-block-start: 1.1rem;
+}
+
+/* Bottom HUD: live state, hard numbers, scroll cue — reads like a deck bar */
+.cine__hud {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 3;
+  border-block-start: 1px solid var(--line);
+  background: linear-gradient(180deg, transparent, rgb(6 12 26 / 0.6));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cine__hud-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-block: 0.85rem;
+  flex-wrap: wrap;
+}
+.hud-stats { display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.5rem); flex-wrap: wrap; }
+.hud-stat { display: flex; align-items: baseline; gap: 0.45rem; }
+.hud-stat b {
+  font-family: "Archivo", sans-serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.hud-stat span { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-4); }
+@media (max-width: 700px) { .cine { padding-block-end: 9.5rem; } .cine__hud-in { justify-content: flex-start; } }
+
+/* ==========================================================================
+   Pinned sections
+   --------------------------------------------------------------------------
+   The section is tall; the stage sticks for its duration. Without JS the
+   stage simply sits at the top of a tall block, so nothing breaks — the
+   height collapses via .no-pin.
+   ========================================================================== */
+.pin { position: relative; block-size: var(--pin-h, 300vh); }
+.pin__stage { position: sticky; inset-block-start: 0; block-size: 100svh; overflow: hidden; display: grid; align-content: center; }
+html:not(.js) .pin, .pin.no-pin { block-size: auto; }
+html:not(.js) .pin__stage, .pin.no-pin .pin__stage { position: static; block-size: auto; padding-block: var(--section-y); }
+
+/* ---------- Scrub: scrolling cuts between frames like an edit timeline --- */
+.scrub { display: grid; grid-template-columns: minmax(0, 0.68fr) minmax(0, 1.32fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+@media (max-width: 900px) { .scrub { grid-template-columns: minmax(0, 1fr); } }
+
+.scrub__frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--ink-800);
+  box-shadow: 0 40px 120px -40px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(238 243 251 / 0.09);
+}
+.scrub__frame img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%; block-size: 100%;
+  object-fit: cover;
+  opacity: 0;
+  scale: 1.04;
+  transition: opacity 0.18s linear, scale 0.6s var(--e-out);
+}
+.scrub__frame img.is-on { opacity: 1; scale: 1; }
+
+/* Scanline + edge glow so the frame reads as a monitor, not a photo */
+.scrub__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+.scrub__hud { display: grid; gap: 1.1rem; }
+.scrub__meta { display: flex; align-items: baseline; gap: 0.8rem; font-variant-numeric: tabular-nums; }
+.scrub__idx {
+  font-family: "Archivo", sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 1.4rem + 4vw, 5rem);
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  color: var(--azure);
+  text-shadow: 0 0 44px rgb(79 155 240 / 0.45);
+}
+.scrub__total { font-size: var(--t-sm); color: var(--fg-4); font-weight: 700; }
+.scrub__client { font-family: "Archivo", sans-serif; font-weight: 800; font-size: var(--t-h3); letter-spacing: -0.03em; }
+.scrub__title { color: var(--fg-3); font-size: var(--t-sm); min-block-size: 2.6em; }
+
+/* The timeline rail — ticks per frame, playhead rides the scroll */
+.scrub__rail { position: relative; block-size: 46px; border-block: 1px solid var(--line); display: flex; align-items: stretch; }
+.scrub__tick { flex: 1; border-inline-end: 1px solid var(--line-soft); position: relative; }
+.scrub__tick::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  block-size: 30%;
+  background: rgb(238 243 251 / 0.12);
+  transition: background var(--d-fast), block-size var(--d-fast);
+}
+.scrub__tick.is-on::after { background: var(--azure); block-size: 100%; }
+.scrub__head {
+  position: absolute;
+  inset-block: -6px;
+  inline-size: 2px;
+  background: var(--azure);
+  box-shadow: 0 0 16px var(--azure);
+  translate: calc(var(--x, 0) * 1px) 0;
+}
+
+/* ---------- Horizontal gallery ------------------------------------------ */
+.hgal { overflow: hidden; }
+.hgal__track { display: flex; gap: clamp(1rem, 2vw, 1.75rem); will-change: transform; padding-inline: var(--gutter); }
+.hgal__card { flex: none; inline-size: clamp(280px, 44vw, 660px); }
+html:not(.js) .hgal__track, .pin.no-pin .hgal__track { overflow-x: auto; padding-block-end: 1rem; }
+
+.hgal__head { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-block-end: clamp(1.25rem, 3vw, 2rem); }
+.hgal__prog { inline-size: min(220px, 40vw); block-size: 2px; background: var(--line); }
+.hgal__prog i { display: block; block-size: 100%; inline-size: calc(var(--p, 0) * 100%); background: var(--azure); box-shadow: 0 0 12px var(--azure); }
+
+/* ==========================================================================
+   Bloom — a soft azure light behind key blocks
+   ========================================================================== */
+.bloom { position: relative; isolation: isolate; }
+.bloom::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  /* Exactly the section's width — a wider pseudo-element here pushed the
+     mobile layout viewport out to 429px. The radial fades well before the
+     edges anyway, so nothing is lost. */
+  inline-size: 100%;
+  block-size: 160%;
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, rgb(79 155 240 / 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+/* Oversized glowing numerals used as a section device */
+.bignum {
+  font-family: "Archivo", sans-serif;
+  font-weight: 900;
+  font-stretch: 84%;
+  font-size: clamp(4rem, 2rem + 10vw, 11rem);
+  line-height: 0.8;
+  letter-spacing: -0.065em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, var(--fg) 30%, rgb(79 155 240 / 0.35));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   Icons — one consistent 24px line set, stroke 1.6
+   ========================================================================== */
+.ico { inline-size: 1.25em; block-size: 1.25em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ico--lg { inline-size: 26px; block-size: 26px; }
+.ico-tile {
+  display: grid;
+  place-items: center;
+  inline-size: 46px; block-size: 46px;
+  border-radius: var(--r-sm);
+  color: var(--azure);
+  background: rgb(79 155 240 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(79 155 240 / 0.22);
+}
