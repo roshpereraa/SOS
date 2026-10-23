@@ -1,5 +1,5 @@
 /* ==========================================================================
-   cinema.js — intro reveal, play cursor, scroll-pinned scrub + gallery
+   cinema.js — play cursor, hero wall parallax, scroll-pinned scrub
    --------------------------------------------------------------------------
    Progressive enhancement throughout. Without JS the pinned sections are
    ordinary stacked blocks (CSS handles that via html:not(.js)); with
@@ -13,42 +13,6 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const clamp = (v, a = 0, b = 1) => Math.min(Math.max(v, a), b);
-
-  /* ------------------------------------------------------------------ *
-   * Intro — one shutter wipe per session
-   * ------------------------------------------------------------------ */
-  function initIntro() {
-    const intro = $(".intro");
-    if (!intro) return;
-
-    const seen = (() => {
-      try { return sessionStorage.getItem("sos:intro") === "1"; } catch { return false; }
-    })();
-
-    const finish = () => {
-      intro.classList.add("is-done");
-      document.body.classList.remove("no-scroll");
-      try { sessionStorage.setItem("sos:intro", "1"); } catch {}
-      setTimeout(() => intro.remove(), 1100);
-    };
-
-    if (seen || reduced.matches) return finish();
-
-    document.body.classList.add("no-scroll");
-    const bar = $(".intro__bar i", intro);
-    const pct = $(".intro__pct", intro);
-    let p = 0;
-    const t = setInterval(() => {
-      // Ease toward 100 so it always feels like it's loading something real
-      p = Math.min(p + Math.max(1, (100 - p) * 0.14), 100);
-      if (bar) bar.style.setProperty("--p", p.toFixed(0) + "%");
-      if (pct) pct.textContent = String(Math.round(p)).padStart(3, "0");
-      if (p >= 99.5) { clearInterval(t); setTimeout(finish, 240); }
-    }, 55);
-
-    // Never trap the page if something stalls
-    setTimeout(() => { clearInterval(t); finish(); }, 4000);
-  }
 
   /* ------------------------------------------------------------------ *
    * Cursor — a disc that turns into PLAY over any still
@@ -113,45 +77,33 @@
     const pins = $$("[data-pin]");
     if (!pins.length) return;
 
-    if (reduced.matches) {
-      pins.forEach((p) => p.classList.add("no-pin"));
-      // Still show the first frame so the section isn't blank
-      $$("[data-scrub]").forEach((s) => $(".scrub__frame img", s)?.classList.add("is-on"));
-      return;
-    }
+    // Pinning is a wide-viewport, fine-pointer affordance. On touch it fights
+    // the user's scroll and leaves long stretches of near-empty page.
+    const canPin = () =>
+      !reduced.matches && innerWidth >= 1024 && !window.matchMedia("(pointer: coarse)").matches;
 
     const sizePins = () => {
+      if (!canPin()) {
+        pins.forEach((pin) => {
+          pin.classList.add("no-pin");
+          pin.style.removeProperty("--pin-h");
+        });
+        return;
+      }
       pins.forEach((pin) => {
-        if (pin.hasAttribute("data-hgal")) {
-          const track = $(".hgal__track", pin);
-          if (!track) return;
-          const over = Math.max(0, track.scrollWidth - innerWidth);
-          pin.dataset.over = String(over);
-          // Run the track faster than 1:1 so a 12-card gallery doesn't cost
-          // 6000px of scrolling to get through.
-          pin.style.setProperty("--pin-h", `${Math.round(innerHeight + over * 0.62)}px`);
-        } else {
-          const frames = $$(".scrub__frame img", pin).length || 8;
-          pin.style.setProperty("--pin-h", `${Math.round(innerHeight * (1 + frames * 0.22))}px`);
-        }
+        pin.classList.remove("no-pin");
+        const frames = $$(".scrub__frame img", pin).length || 8;
+        pin.style.setProperty("--pin-h", `${Math.round(innerHeight * (1 + frames * 0.18))}px`);
       });
     };
 
     const frame = () => {
       ticking = false;
+      if (!canPin()) return;
       pins.forEach((pin) => {
         const r = pin.getBoundingClientRect();
         const total = pin.offsetHeight - innerHeight;
         const prog = total > 0 ? clamp(-r.top / total) : 0;
-
-        if (pin.hasAttribute("data-hgal")) {
-          const track = $(".hgal__track", pin);
-          const bar = $(".hgal__prog i", pin);
-          const over = Number(pin.dataset.over || 0);
-          if (track) track.style.transform = `translate3d(${-(prog * over).toFixed(1)}px,0,0)`;
-          if (bar) bar.parentElement.style.setProperty("--p", prog.toFixed(3));
-          return;
-        }
 
         // Scrub
         const imgs = $$(".scrub__frame img", pin);
@@ -191,7 +143,6 @@
   }
 
   const boot = () => {
-    initIntro();
     initCursor();
     initWall();
     initPins();

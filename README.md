@@ -76,12 +76,17 @@ Three things carry the page, all built from the same twelve stills:
 frames like running an edit timeline, with a frame counter, client name and a tick rail
 that fills as you go. This is the one moment that's specific to what SOS actually does.
 
-**The gallery** (`[data-hgal]`) — a pinned section that tracks sideways through the work
-as you scroll down, at 1.6× scroll speed so it doesn't cost 6000px to get through.
+**The work rail** (`.hgal`) — a natively scrollable, snap-aligned row of large cards.
+This was briefly a pinned scroll-jacked section; it cost ~4900px of page height to show
+one screen of cards and fought the user on touch, so it's a normal overflow rail now.
 
-One scroll loop in `cinema.js` drives all of it. Pin heights are measured from real
-content and recomputed on resize and after fonts settle. Without JS the pinned sections
-become ordinary stacked blocks; with `prefers-reduced-motion` they unpin entirely.
+`cinema.js` drives the scrub from one scroll loop. **Pinning only runs at ≥1024px with a
+fine pointer** — on touch it fights the user's scroll and leaves long stretches of
+near-empty page. Below that, and under `prefers-reduced-motion`, the scrub renders as an
+ordinary two-column gallery of all twelve stills.
+
+`.pin` defaults to `block-size: auto`, so if `cinema.js` never runs the section collapses
+to one screen instead of leaving thousands of pixels of empty page.
 
 ## Icons
 

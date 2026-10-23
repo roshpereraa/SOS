@@ -1,60 +1,11 @@
 /* ==========================================================================
    cinema.css — the parts that make this a showreel rather than a layout
    --------------------------------------------------------------------------
-   Intro reveal, play cursor, the hero wall, scroll-scrubbed timeline,
-   horizontal gallery, glow/bloom. Everything degrades: without JS the pinned
+   Play cursor, the hero wall, the scroll-scrubbed timeline, the work
+   rail, glow/bloom. Everything degrades: without JS the pinned
    sections become ordinary stacked content, and prefers-reduced-motion stops
    all drift.
    ========================================================================== */
-
-/* ==========================================================================
-   Intro — a shutter wipe, once per session
-   ========================================================================== */
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: grid;
-  place-items: center;
-  background: var(--ink-1000);
-  transition: clip-path 1s var(--e-inout);
-  clip-path: inset(0 0 0 0);
-}
-.intro.is-done { clip-path: inset(0 0 100% 0); pointer-events: none; }
-.intro__mark {
-  font-family: "Archivo", sans-serif;
-  font-weight: 900;
-  font-stretch: 86%;
-  font-size: clamp(3rem, 14vw, 9rem);
-  letter-spacing: -0.07em;
-  line-height: 1;
-  color: var(--fg);
-}
-.intro__mark em { font-style: normal; color: var(--azure); }
-.intro__bar {
-  inline-size: min(260px, 50vw);
-  block-size: 2px;
-  margin-block-start: 1.6rem;
-  background: rgb(238 243 251 / 0.14);
-  overflow: hidden;
-}
-.intro__bar i {
-  display: block;
-  block-size: 100%;
-  inline-size: var(--p, 0%);
-  background: var(--azure);
-  box-shadow: 0 0 14px var(--azure);
-  transition: inline-size 0.25s linear;
-}
-.intro__pct {
-  margin-block-start: 0.8rem;
-  font-size: var(--t-micro);
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  color: var(--fg-4);
-  font-variant-numeric: tabular-nums;
-}
-@media (prefers-reduced-motion: reduce) { .intro { display: none; } }
 
 /* ==========================================================================
    Cursor — becomes a PLAY disc over any still
@@ -233,7 +184,13 @@ body.cursor-on.is-play .cursor-dot { opacity: 0; }
    stage simply sits at the top of a tall block, so nothing breaks — the
    height collapses via .no-pin.
    ========================================================================== */
-.pin { position: relative; block-size: var(--pin-h, 300vh); }
+/* Default to auto: if cinema.js never sizes this, the section collapses to
+   one screen rather than leaving ~2700px of empty page. JS sets an explicit
+   height only when it is actually going to pin. */
+.pin { position: relative; block-size: var(--pin-h, auto); }
+
+/* Below this the scrub becomes an ordinary gallery — see the query at the
+   end of this file. Pinning only runs on a wide, fine-pointer viewport. */
 .pin__stage { position: sticky; inset-block-start: 0; block-size: 100svh; overflow: hidden; display: grid; align-content: center; }
 html:not(.js) .pin, .pin.no-pin { block-size: auto; }
 html:not(.js) .pin__stage, .pin.no-pin .pin__stage { position: static; block-size: auto; padding-block: var(--section-y); }
@@ -309,10 +266,22 @@ html:not(.js) .pin__stage, .pin.no-pin .pin__stage { position: static; block-siz
 }
 
 /* ---------- Horizontal gallery ------------------------------------------ */
-.hgal { overflow: hidden; }
-.hgal__track { display: flex; gap: clamp(1rem, 2vw, 1.75rem); will-change: transform; padding-inline: var(--gutter); }
-.hgal__card { flex: none; inline-size: clamp(280px, 44vw, 660px); }
-html:not(.js) .hgal__track, .pin.no-pin .hgal__track { overflow-x: auto; padding-block-end: 1rem; }
+/* A normal horizontally-scrollable rail. Pinning this cost ~4900px of page
+   height to show one screen of cards, and scroll-jacked sideways motion is
+   hostile on touch. Native overflow scroll with snap works everywhere. */
+.hgal {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-500) transparent;
+  padding-block-end: 0.9rem;
+  -webkit-overflow-scrolling: touch;
+}
+.hgal::-webkit-scrollbar { block-size: 6px; }
+.hgal::-webkit-scrollbar-thumb { background: var(--ink-500); border-radius: 99px; }
+.hgal__track { display: flex; gap: clamp(1rem, 2vw, 1.75rem); inline-size: max-content; padding-inline: var(--gutter); }
+.hgal__card { flex: none; inline-size: clamp(260px, 38vw, 520px); scroll-snap-align: start; }
 
 .hgal__head { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-block-end: clamp(1.25rem, 3vw, 2rem); }
 .hgal__prog { inline-size: min(220px, 40vw); block-size: 2px; background: var(--line); }
@@ -343,8 +312,10 @@ html:not(.js) .hgal__track, .pin.no-pin .hgal__track { overflow-x: auto; padding
   font-family: "Archivo", sans-serif;
   font-weight: 900;
   font-stretch: 84%;
-  font-size: clamp(4rem, 2rem + 10vw, 11rem);
-  line-height: 0.8;
+  /* A 3-up grid gives each cell ~colwidth/3 to play with; "164M+" needs about
+     3em, so the cap has to stay well under that or the figures collide. */
+  font-size: clamp(2.4rem, 0.5rem + 5.6vw, 8rem);
+  line-height: 0.84;
   letter-spacing: -0.065em;
   font-variant-numeric: tabular-nums;
   background: linear-gradient(180deg, var(--fg) 30%, rgb(79 155 240 / 0.35));
@@ -367,4 +338,33 @@ html:not(.js) .hgal__track, .pin.no-pin .hgal__track { overflow-x: auto; padding
   color: var(--azure);
   background: rgb(79 155 240 / 0.1);
   box-shadow: inset 0 0 0 1px rgb(79 155 240 / 0.22);
+}
+
+
+/* ==========================================================================
+   Narrow / touch: unpin everything and let the scrub read as a gallery
+   ========================================================================== */
+@media (max-width: 1023px), (pointer: coarse) {
+  .pin { block-size: auto !important; }
+  .pin__stage { position: static; block-size: auto; overflow: visible; padding-block: var(--section-y); }
+
+  .scrub { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .scrub__frame {
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.5rem, 1.5vw, 0.9rem);
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .scrub__frame::after { display: none; }
+  .scrub__frame img {
+    position: static;
+    opacity: 1;
+    scale: 1;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-sm);
+  }
+  .scrub__meta, .scrub__rail, .scrub__client, .scrub__title { display: none; }
 }
