@@ -189,7 +189,9 @@
       peek = document.createElement("div");
       peek.className = "peek";
       peek.setAttribute("aria-hidden", "true");
-      peek.innerHTML = '<img alt="">';
+      // A transparent placeholder — an <img> with no src counts as a broken image
+      // until the first hover supplies one.
+      peek.innerHTML = '<img alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">';
       document.body.appendChild(peek);
     }
     const peekImg = peek && peek.querySelector("img");

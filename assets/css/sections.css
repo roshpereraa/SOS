@@ -101,6 +101,11 @@
 .page-hero__title em { font-style: normal; color: var(--azure); }
 
 .crumbs { display: flex; gap: 0.45rem; align-items: center; font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-4); margin-block-end: 1.1rem; }
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;      /* WCAG 2.5.8 target size */
+}
 .crumbs a:hover { color: var(--fg-2); }
 
 /* ==========================================================================
